@@ -3,7 +3,8 @@ uvicorn==0.32.1
 
 python-multipart==0.0.19
 pydantic[email]
-passlib[bcrypt] 
+passlib==1.7.4
+passlib[argon2]
 python-jose[cryptography]
 
 pymongo==4.10.1
