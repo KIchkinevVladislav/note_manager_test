@@ -1,14 +1,16 @@
 from functools import wraps
 from fastapi import HTTPException, status
+from app.crud.exceptions import CreredentialsException, UserRoleDoesNotExist, ExistRoleException
 
 def handle_common_exceptions(func):
     @wraps(func)
-    async def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):
         try:
-            return await func(*args, **kwargs)
-        except HTTPException:
+            return func(*args, **kwargs)
+        except (HTTPException, CreredentialsException, UserRoleDoesNotExist, ExistRoleException):
             raise
         except Exception as e:
+            print(f'{e = }')
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Server error. Try again later"
