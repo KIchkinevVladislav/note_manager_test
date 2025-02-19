@@ -20,3 +20,8 @@ class StatusResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class RoleUpdateRequest(BaseModel):
+    user_email: str
+    new_role: str # Admin, User

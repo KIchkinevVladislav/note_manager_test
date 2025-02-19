@@ -1,22 +1,24 @@
 from datetime import datetime, timedelta
 
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from pymongo.database import Database, Collection
 from jose import JWTError, jwt
 
 from database.schemas import UserInDB
-from app.crud.exceptions import UserAlreadeCreatedException, UserNotFoundException
+from database.mongo import get_mongo_db
+from app.crud.exceptions import UserAlreadeCreatedException, UserNotFoundException, CreredentialsException, UserRoleDoesNotExist, ExistRoleException
 from conf.app_conf import access_token_config
 
 
 PWD_CONTEXT = CryptContext(schemes=['argon2'], deprecated='auto')
-OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl='/user/token')
 
 
 class UserDAO():
     def __init__(self, mongo: Database):
         self._mongo = mongo
+        self.user_roles = ("User", "Admin")
     
     @property
     def _collection(self) -> Collection:
@@ -37,6 +39,21 @@ class UserDAO():
         user = UserInDB(username=email, hashed_password=hashed_password, role=role)
 
         self._collection.insert_one(user.model_dump())
+
+    def update_user_role_in_db(self, email: str, new_role: str):
+        if new_role not in self.user_roles:
+            raise UserRoleDoesNotExist
+        
+        user = self.get_user(email=email)
+        if not user:
+            raise UserNotFoundException
+        
+        if user.role == new_role:
+            raise ExistRoleException
+        
+        self._collection.update_one(
+            {"username": email},
+            {"$set": {"role": new_role}})
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -63,3 +80,29 @@ def create_access_token(data: dict) -> str:
         algorithm=access_token_config.algorithm
     )
     return encoded_jwt
+
+
+OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl='/user/token')
+
+
+def get_current_user_from_token(token: str=Depends(OAUTH2_SCHEME)) -> UserInDB:
+    print('now')
+    try:
+        print('now')
+        payload = jwt.decode(
+            token,
+            access_token_config.secret_key,
+            algorithms = [access_token_config.algorithm],
+        )
+        email: str = payload.get('sub')
+        if email is None:
+            raise CreredentialsException
+    except JWTError:
+        raise CreredentialsException
+    
+    print(email)
+    
+    user = UserDAO(mongo=get_mongo_db()).get_user(email=email)
+    if user is None:
+            raise UserNotFoundException
+    return user
