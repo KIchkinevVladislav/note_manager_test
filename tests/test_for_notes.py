@@ -70,6 +70,7 @@ class TestNoteDAO(unittest.TestCase):
         self.mock_collection.find_one_and_update.assert_called_once_with(
             {"uuid": "test-uuid", "author": "test_user", "is_active": True},
             {"$set": updated_data},
+            projection={'is_active': 0, 'author': 0, '_id': 0},
             return_document=ReturnDocument.AFTER
         )
 
