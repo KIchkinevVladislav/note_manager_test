@@ -3,7 +3,6 @@ import unittest
 from unittest.mock import patch, MagicMock
 from starlette import status
 
-
 from pymongo.collection import Collection
 from fastapi import status
 from fastapi.testclient import TestClient
