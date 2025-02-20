@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from database.schemas import User, UserInDB, StatusResponse, Token, RoleUpdateRequest
-from database.mongo import get_mongo_db
+from database.mongo import get_db
 from app.crud.users import UserDAO, authenticate_user, create_access_token, get_current_user_from_token
 from app.crud.exceptions import UserAlreadeCreatedException, UserNotFoundException, UserRoleDoesNotExist, ExistRoleException
 from app.utils.handle_common_exceptions import handle_common_exceptions
@@ -15,9 +15,9 @@ user_routers = APIRouter()
 
 @user_routers.post('/sign-up', response_model=StatusResponse)
 @handle_common_exceptions
-def create_user(body: User):
+def create_user(body: User, db=Depends(get_db)):
     try:
-        UserDAO(mongo=get_mongo_db()).create_new_user(
+        UserDAO(mongo=db).create_new_user(
             email=body.email, 
             password=body.password)
 
@@ -28,9 +28,9 @@ def create_user(body: User):
 
 @user_routers.post('/token', response_model=Token)
 @handle_common_exceptions
-def login_for_access_token(form_data: OAuth2PasswordRequestForm=Depends()):
+def login_for_access_token(form_data: OAuth2PasswordRequestForm=Depends(), db=Depends(get_db)):
         try:
-            user = authenticate_user(get_mongo_db(), form_data.username, form_data.password)
+            user = authenticate_user(db, form_data.username, form_data.password)
             access_token = create_access_token(
                 data={'sub': user.username}
             )
@@ -47,14 +47,14 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm=Depends()):
 
 @user_routers.patch("/update-role", response_model=StatusResponse)
 @handle_common_exceptions
-def update_user_role(role_update: RoleUpdateRequest, current_user: UserInDB = Depends(get_current_user_from_token)):
+def update_user_role(role_update: RoleUpdateRequest, current_user: UserInDB = Depends(get_current_user_from_token),  db=Depends(get_db)):
     if current_user.role != "Superuser":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to perform this action"
         )
     try:
-        UserDAO(mongo=get_mongo_db()).update_user_role_in_db(
+        UserDAO(mongo=db).update_user_role_in_db(
             email=role_update.user_email, 
             new_role=role_update.new_role)
         return StatusResponse(status_code=status.HTTP_200_OK, detail="Successfully")

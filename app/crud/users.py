@@ -7,7 +7,7 @@ from pymongo.database import Database, Collection
 from jose import JWTError, jwt
 
 from database.schemas import UserInDB
-from database.mongo import get_mongo_db
+from database.mongo import get_db
 from app.crud.exceptions import UserAlreadeCreatedException, UserNotFoundException, CreredentialsException, UserRoleDoesNotExist, ExistRoleException
 from conf.app_conf import access_token_config
 
@@ -85,14 +85,12 @@ def create_access_token(data: dict) -> str:
 OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl='/user/token')
 
 
-def get_current_user_from_token(token: str=Depends(OAUTH2_SCHEME)) -> UserInDB:
-    print('now')
+def get_current_user_from_token(token: str = Depends(OAUTH2_SCHEME), db=Depends(get_db)) -> UserInDB:
     try:
-        print('now')
         payload = jwt.decode(
             token,
             access_token_config.secret_key,
-            algorithms = [access_token_config.algorithm],
+            algorithms=[access_token_config.algorithm],
         )
         email: str = payload.get('sub')
         if email is None:
@@ -100,9 +98,7 @@ def get_current_user_from_token(token: str=Depends(OAUTH2_SCHEME)) -> UserInDB:
     except JWTError:
         raise CreredentialsException
     
-    print(email)
-    
-    user = UserDAO(mongo=get_mongo_db()).get_user(email=email)
+    user = UserDAO(mongo=db).get_user(email=email)
     if user is None:
-            raise UserNotFoundException
+        raise UserNotFoundException
     return user
