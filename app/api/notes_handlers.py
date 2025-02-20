@@ -51,7 +51,9 @@ def update_note(uuid: str, title: str = None, body: str = None, current_user: Us
             updated_data=updated_fields, 
             author=current_user.username
         )
-        return updated_note
+        note = {key: value for key, value in updated_note.items() if key not in {"_id", "is_active", "author"}}
+        
+        return note
 
 
 @note_routers.delete("/{uuid}", response_model=StatusResponse)
