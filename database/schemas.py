@@ -1,4 +1,7 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from typing import Optional
+from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class User(BaseModel):
@@ -10,6 +13,21 @@ class UserInDB(BaseModel):
     username: str
     hashed_password: str
     role: str
+
+
+class NoteCreate(BaseModel):
+    title: str = Field(..., max_length=256)
+    body: str = Field(..., max_length=65536)
+
+
+class NoteInDBForUser(NoteCreate):
+    uuid: str
+    created_at: datetime
+
+  
+class NoteInDB(NoteInDBForUser):  
+    author: str
+    is_active: bool
 
 
 class StatusResponse(BaseModel):

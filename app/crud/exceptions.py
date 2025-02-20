@@ -16,6 +16,10 @@ class ExistRoleException(Exception):
     pass
 
 
+class NoteNotFoundException(Exception):
+    pass
+
+
 class CreredentialsException(HTTPException):
     def __init__(self):
         super().__init__(
