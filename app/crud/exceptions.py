@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 
+
 class UserAlreadeCreatedException(Exception):
     pass
 

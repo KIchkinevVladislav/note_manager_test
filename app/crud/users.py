@@ -2,15 +2,16 @@ from datetime import datetime, timedelta
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
-from passlib.context import CryptContext
-from pymongo.database import Database, Collection
 from jose import JWTError, jwt
+from passlib.context import CryptContext
+from pymongo.database import Collection, Database
 
-from database.schemas import UserInDB
-from database.mongo import get_db
-from app.crud.exceptions import UserAlreadeCreatedException, UserNotFoundException, CreredentialsException, UserRoleDoesNotExist, ExistRoleException
+from app.crud.exceptions import (CreredentialsException, ExistRoleException,
+                                 UserAlreadeCreatedException,
+                                 UserNotFoundException, UserRoleDoesNotExist)
 from conf.app_conf import access_token_config
-
+from database.mongo import get_db
+from database.schemas import UserInDB
 
 PWD_CONTEXT = CryptContext(schemes=['argon2'], deprecated='auto')
 
@@ -19,20 +20,20 @@ class UserDAO():
     def __init__(self, mongo: Database):
         self._mongo = mongo
         self.user_roles = ("User", "Admin")
-    
+
     @property
     def _collection(self) -> Collection:
         return self._mongo.users
 
-    def get_user(self, email: str) -> UserInDB | None: 
+    def get_user(self, email: str) -> UserInDB | None:
         user_data = self._collection.find_one({"username": email})
         if user_data:
             return UserInDB(**user_data)
-          
+
     def _get_password_hash(self, password) -> str:
         return PWD_CONTEXT.hash(password)
 
-    def create_new_user(self, email: str, password: str, role: str="User"):
+    def create_new_user(self, email: str, password: str, role: str = "User"):
         if self.get_user(email):
             raise UserAlreadeCreatedException
         hashed_password = self._get_password_hash(password)
@@ -43,14 +44,14 @@ class UserDAO():
     def update_user_role_in_db(self, email: str, new_role: str):
         if new_role not in self.user_roles:
             raise UserRoleDoesNotExist
-        
+
         user = self.get_user(email=email)
         if not user:
             raise UserNotFoundException
-        
+
         if user.role == new_role:
             raise ExistRoleException
-        
+
         self._collection.update_one(
             {"username": email},
             {"$set": {"role": new_role}})
@@ -58,10 +59,9 @@ class UserDAO():
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return PWD_CONTEXT.verify(plain_password, hashed_password)
-    
 
-def authenticate_user(mongo: Database, email: str, password: str
-    ) -> UserInDB | None:
+
+def authenticate_user(mongo: Database, email: str, password: str) -> UserInDB | None:
     user = UserDAO(mongo=mongo).get_user(email=email)
 
     if user is not None and verify_password(password, user.hashed_password):
@@ -76,7 +76,7 @@ def create_access_token(data: dict) -> str:
         )
     to_encode.update({'exp': expire})
     encoded_jwt = jwt.encode(
-        to_encode, access_token_config.secret_key, 
+        to_encode, access_token_config.secret_key,
         algorithm=access_token_config.algorithm
     )
     return encoded_jwt
@@ -97,7 +97,6 @@ def get_current_user_from_token(token: str = Depends(OAUTH2_SCHEME), db=Depends(
             raise CreredentialsException
     except JWTError:
         raise CreredentialsException
-    
     user = UserDAO(mongo=db).get_user(email=email)
     if user is None:
         raise UserNotFoundException
