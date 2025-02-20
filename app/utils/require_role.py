@@ -1,10 +1,10 @@
 from functools import wraps
-from typing import List, Callable
+from typing import Callable, List
 
-from fastapi import HTTPException, Depends, status
+from fastapi import Depends, HTTPException, status
 
-from database.schemas import UserInDB
 from app.crud.users import get_current_user_from_token
+from database.schemas import UserInDB
 
 
 def require_role(allowed_roles: List[str]):

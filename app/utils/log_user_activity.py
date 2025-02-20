@@ -1,6 +1,7 @@
 import logging
-from typing import Callable, Optional
 from functools import wraps
+from typing import Callable
+
 
 logging.basicConfig(
     level=logging.INFO,

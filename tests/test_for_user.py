@@ -1,16 +1,16 @@
 import re
 import unittest
-from unittest.mock import patch, MagicMock
-from starlette import status
+from unittest.mock import MagicMock, patch
 
-from pymongo.collection import Collection
 from fastapi import status
 from fastapi.testclient import TestClient
+from pymongo.collection import Collection
+from starlette import status
 
-from main import app
-from app.crud.users import UserDAO, PWD_CONTEXT
 from app.crud.exceptions import UserAlreadeCreatedException
+from app.crud.users import PWD_CONTEXT, UserDAO
 from database.schemas import UserInDB
+from main import app
 
 
 class TestUserDAO(unittest.TestCase):

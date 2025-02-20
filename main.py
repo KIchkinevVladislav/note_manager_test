@@ -1,8 +1,8 @@
 import uvicorn
 from fastapi import FastAPI
 
-from app.api.user_handlers import user_routers
 from app.api.notes_handlers import note_routers
+from app.api.user_handlers import user_routers
 
 app = FastAPI()
 

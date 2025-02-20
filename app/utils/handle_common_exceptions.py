@@ -1,8 +1,10 @@
-from typing import Callable
 from functools import wraps
+from typing import Callable
 
 from fastapi import HTTPException, status
+
 from app.crud.exceptions import CreredentialsException, NoteNotFoundException
+
 
 def handle_common_exceptions(func: Callable):
     @wraps(func)

@@ -1,13 +1,13 @@
 import unittest
 from unittest.mock import MagicMock
+
+from pymongo import ReturnDocument
 from pymongo.collection import Collection
 from pymongo.database import Database
-from pymongo import ReturnDocument
-from datetime import datetime
-import uuid
 
 from app.crud.notes import NoteDAO
 from database.schemas import NoteCreate
+
 
 class TestNoteDAO(unittest.TestCase):
     def setUp(self):
