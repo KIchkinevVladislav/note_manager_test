@@ -42,7 +42,6 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm=Depends(), db=De
             )
 
 
-
 @user_routers.patch("/update-role", response_model=StatusResponse)
 @handle_common_exceptions
 def update_user_role(role_update: RoleUpdateRequest, current_user: UserInDB = Depends(get_current_user_from_token),  db=Depends(get_db)):

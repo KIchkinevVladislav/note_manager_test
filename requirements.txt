@@ -11,3 +11,5 @@ pymongo==4.10.1
 
 environ-config==24.1.0
 python-dotenv==1.0.1
+
+httpx==0.28.1

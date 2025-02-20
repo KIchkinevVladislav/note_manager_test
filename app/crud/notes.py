@@ -1,14 +1,11 @@
 from datetime import datetime
 import uuid
-from functools import wraps
 
 
-from fastapi import Depends
 from pymongo.database import Database, Collection
 from pymongo import DESCENDING, ReturnDocument
 
 from database.schemas import NoteCreate
-from database.mongo import get_db
 from app.crud.exceptions import NoteNotFoundException
 
 
@@ -88,13 +85,6 @@ class NoteDAO():
             raise NoteNotFoundException
         return note
     
-    # def get_notes_list_for_staff(self):
-    #     notes_cursor = self._collection.find(
-    #         {},
-    #         {"_id": 0}
-    #     ).sort("created_at", DESCENDING) 
-        
-    #     return list(notes_cursor)
 
     def get_notes_list_for_staff(self, author: str = None):
 

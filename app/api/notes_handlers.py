@@ -62,12 +62,6 @@ def delete_note(uuid: str, current_user: UserInDB = Depends(get_current_user_fro
     return StatusResponse(status_code=status.HTTP_200_OK, detail="Note deleted")
 
 
-
-
-
-
-
-
 @note_routers.delete("/staff/restore_note/{uuid}", response_model=StatusResponse)
 @handle_common_exceptions
 @require_role(["Admin", "Superuser"])
