@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from database.schemas import UserInDB, StatusResponse, NoteCreate, NoteInDBForUser
+from database.schemas import UserInDB, StatusResponse, NoteCreate, NoteInDBForUser, NoteInDB
 from database.mongo import get_db
 from app.crud.notes import NoteDAO
 from app.crud.users import get_current_user_from_token
@@ -55,7 +55,56 @@ def update_note(uuid: str, title: str = None, body: str = None, current_user: Us
 
 @note_routers.delete("/{uuid}", response_model=StatusResponse)
 @handle_common_exceptions
-def delete_note(uuid: str, author: UserInDB = Depends(get_current_user_from_token), db=Depends(get_db)):
-    NoteDAO(mongo=db).delete_note_by_uuid(uuid=uuid, author=author.username)
+def delete_note(uuid: str, current_user: UserInDB = Depends(get_current_user_from_token), db=Depends(get_db)):
+    NoteDAO(mongo=db).delete_note_by_uuid(uuid=uuid, author=current_user.username)
 
     return StatusResponse(status_code=status.HTTP_200_OK, detail="Note deleted")
+
+
+@note_routers.delete("/staff/restore_note/{uuid}", response_model=StatusResponse)
+@handle_common_exceptions
+def restore_note(uuid: str, current_user: UserInDB = Depends(get_current_user_from_token), db=Depends(get_db)):
+    if current_user.role not in ("Admin", "Superuser"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to perform this action"
+        )
+    NoteDAO(mongo=db).restore_note_by_uuid(uuid=uuid)
+
+    return StatusResponse(status_code=status.HTTP_200_OK, detail="Note restored")
+
+
+@note_routers.get("/staff/get_note/{uuid}", response_model=NoteInDB)
+@handle_common_exceptions
+def get_note_for_staff(note_uuid: str, current_user: UserInDB = Depends(get_current_user_from_token), db=Depends(get_db)):
+    if current_user.role not in ("Admin", "Superuser"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to perform this action"
+        )
+    note = NoteDAO(mongo=db).get_note_by_uuid_for_staff(note_uuid=note_uuid)
+    return note
+
+
+@note_routers.get("/staff/get_notes", response_model=List[NoteInDB])
+@handle_common_exceptions
+def get_note_for_staff(current_user: UserInDB = Depends(get_current_user_from_token), db=Depends(get_db)):
+    if current_user.role not in ("Admin", "Superuser"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to perform this action"
+        )
+    note = NoteDAO(mongo=db).get_notes_list_for_staff()
+    return note
+
+
+@note_routers.get("/staff/get_notes_users", response_model=List[NoteInDB])
+@handle_common_exceptions
+def get_notes_user_for_staff(username: str, current_user: UserInDB = Depends(get_current_user_from_token), db=Depends(get_db)):
+    if current_user.role not in ("Admin", "Superuser"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to perform this action"
+        )
+    note = NoteDAO(mongo=db).get_notes_list_for_staff(author=username)
+    return note
