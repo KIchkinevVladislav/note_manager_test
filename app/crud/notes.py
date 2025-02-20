@@ -48,6 +48,7 @@ class NoteDAO():
         note = self._collection.find_one_and_update(
             {"uuid": uuid, "author": author, "is_active": True},
             {"$set": updated_data},
+            projection={"is_active": 0, "author": 0, "_id": 0},
             return_document=ReturnDocument.AFTER
         )
        
