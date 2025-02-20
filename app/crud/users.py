@@ -82,7 +82,7 @@ def create_access_token(data: dict) -> str:
     return encoded_jwt
 
 
-OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl='/user/token')
+OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl='/users/token')
 
 
 def get_current_user_from_token(token: str = Depends(OAUTH2_SCHEME), db=Depends(get_db)) -> UserInDB:
