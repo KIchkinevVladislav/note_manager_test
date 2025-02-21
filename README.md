@@ -30,7 +30,7 @@ API для управления заметками
 
 - Копируем код приложения в Вашу директорию.
 
-``
+`git clone https://github.com/KIchkinevVladislav/note_manager_test.git`
 
 - Запускаем контейнеры
 
