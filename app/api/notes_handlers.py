@@ -125,7 +125,7 @@ def get_notes_for_staff(
     return note
 
 
-@note_routers.get("/staff/get_notes_users", response_model=List[NoteInDB])
+@note_routers.get("/staff/get_notes_users/{username}", response_model=List[NoteInDB])
 @handle_common_exceptions
 @log_user_activity(log_username=True)
 @require_role(["Admin", "Superuser"])
